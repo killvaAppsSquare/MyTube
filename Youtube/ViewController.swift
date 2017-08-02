@@ -16,6 +16,12 @@ class ViewController: UICollectionViewController , UICollectionViewDelegateFlowL
         view.backgroundColor = .blue
         return view
     }()
+    
+    var videosData : [VideoModel] {
+        guard let x = _videosData else { return [] }
+        return x
+    }
+    private var _videosData : [VideoModel]?
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -30,9 +36,32 @@ class ViewController: UICollectionViewController , UICollectionViewDelegateFlowL
         
         collectionView?.contentInset = UIEdgeInsetsMake(50, 0, 0, 0)
         collectionView?.scrollIndicatorInsets = UIEdgeInsetsMake(50, 0, 0, 0)
+        
+        let serachBarBtn = UIBarButtonItem(image: #imageLiteral(resourceName: "search_icon").withRenderingMode(.alwaysOriginal), landscapeImagePhone: nil, style: .plain, target: self, action: #selector(handleSearch))
+              let moreBarBtn = UIBarButtonItem(image: #imageLiteral(resourceName: "nav_more_icon").withRenderingMode(.alwaysOriginal), landscapeImagePhone: nil, style: .plain, target: self, action: #selector(handleMore))
+
+        navigationItem.rightBarButtonItems = [moreBarBtn,serachBarBtn]
+        
+        let data = VideoModelData()
+        data.getVideoData { (data) in
+            
+             DispatchQueue.main.async {
+                self._videosData = data
+                self.collectionView?.reloadData()
+             }
+        }
+    }
+    func handleSearch(){
+        
+    }
+    func handleMore(){
+        
+        let blackView = UIView()
+        blackView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        navigationController?.view.addSubview(blackView)
+        blackView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height)
 
     }
-
     func setupNavBar() {
         navigationController?.navigationBar.isTranslucent = false
         let titleLbl = UILabel(frame: CGRect(x: 0, y: 0, width: view.frame.size.width - 32, height: 20))
@@ -43,20 +72,20 @@ class ViewController: UICollectionViewController , UICollectionViewDelegateFlowL
     }
    
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 5
+        return videosData.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CellId", for: indexPath) as! MainCell
-        
+        cell.videoData = videosData[indexPath.row]
          return cell
     }
     
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let height = ( view.frame.size.width - 32 ) * 9/16
-        return CGSize(width: view.frame.size.width, height: height + 69)
+        return CGSize(width: view.frame.size.width, height: height + 82)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -68,12 +97,42 @@ class ViewController: UICollectionViewController , UICollectionViewDelegateFlowL
 
 class MainCell : UICollectionViewCell {
 
+    var titleLabelHeightConstraint: NSLayoutConstraint?
+
+    var videoData : VideoModel? {
+        didSet {
+            guard let data = videoData , let channel = data.channel  else { return }
+            
+            self.videoTitle.text = data.title
+            self.thumpnailImage.loadImageUsingUrlString(data.thumbnailImageName)
+            self.profileImageView.loadImageUsingUrlString(channel.profileImageName)
+            let numberFormatter = NumberFormatter()
+            numberFormatter.numberStyle = .decimal
+            
+            let subtitleText = "\(data.channel?.name ?? "" ) • \(numberFormatter.string(from: data.viewsNum)!) • 2 years ago "
+            
+            self.subTitleTextView.text = subtitleText
+            
+//            if let title = videoData?.title{
+//                let size = CGSize(width: frame.width - 16 - 44 - 8 - 16, height: 1000)
+//                let options = NSStringDrawingOptions.usesFontLeading.union(.usesLineFragmentOrigin)
+//                let estimatedRect = NSString(string: title).boundingRect(with: size, options: options, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 14)], context: nil)
+//                
+//                if estimatedRect.size.height > 20 {
+//                    titleLabelHeightConstraint?.constant = 44
+//                } else {
+//                    titleLabelHeightConstraint?.constant = 20
+//                }
+//            }
+        }
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
     }
-    let thumpnailImage : UIImageView = {
-       let imageView = UIImageView()
+    let thumpnailImage : CustomImageView = {
+       let imageView = CustomImageView()
         imageView.image = UIImage(named: "taylor_swift_blank_space")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
@@ -86,8 +145,8 @@ class MainCell : UICollectionViewCell {
         return view
     }()
     
-    let profileImageView : UIImageView = {
-        let imageV = UIImageView()
+    let profileImageView : CustomImageView = {
+        let imageV = CustomImageView()
         imageV.image = UIImage(named: "taylor_swift_profile")
         imageV.layer.cornerRadius =  22
         imageV.layer.masksToBounds = true
@@ -97,6 +156,7 @@ class MainCell : UICollectionViewCell {
     let videoTitle: UILabel = {
        let labelView = UILabel()
         labelView.text = "Taylor * Love Story"
+        labelView.numberOfLines = 2
         labelView.translatesAutoresizingMaskIntoConstraints = false
         return labelView
     }()
@@ -120,7 +180,7 @@ class MainCell : UICollectionViewCell {
 
          addConstraintsWithFormat("H:|-20-[v0]-20-|", views: thumpnailImage)
 
-         addConstraintsWithFormat("V:|-16-[v0]-[v1(44)]-16-[v2(1)]|", views: thumpnailImage,profileImageView,seprator)
+         addConstraintsWithFormat("V:|-16-[v0]-[v1(44)]-38-[v2(1)]|", views: thumpnailImage,profileImageView,seprator)
         
         addConstraintsWithFormat("H:|-20-[v0]-20-|", views: seprator)
         
@@ -133,7 +193,8 @@ class MainCell : UICollectionViewCell {
         
         addConstraints([NSLayoutConstraint(item: videoTitle, attribute: .right, relatedBy: .equal, toItem: thumpnailImage, attribute: .right, multiplier: 1, constant: 0)])
         
-        addConstraints([NSLayoutConstraint(item: videoTitle, attribute: .height, relatedBy: .equal, toItem: self, attribute: .height, multiplier: 0, constant: 20)])
+//        titleLabelHeightConstraint =  NSLayoutConstraint(item: videoTitle, attribute: .height, relatedBy: .equal, toItem: self, attribute: .height, multiplier: 0, constant: 44)
+//        addConstraint(titleLabelHeightConstraint!)
         
         // subTitleTextView
         addConstraints([NSLayoutConstraint(item: subTitleTextView, attribute: .left, relatedBy: .equal, toItem: profileImageView, attribute: .right, multiplier: 1, constant: 8)])
@@ -142,7 +203,9 @@ class MainCell : UICollectionViewCell {
         
         addConstraints([NSLayoutConstraint(item: subTitleTextView, attribute: .right, relatedBy: .equal, toItem: thumpnailImage, attribute: .right, multiplier: 1, constant: 0)])
         
-        addConstraints([NSLayoutConstraint(item: subTitleTextView, attribute: .height, relatedBy: .equal, toItem: self, attribute: .height, multiplier: 0, constant: 30)])
+        addConstraints([NSLayoutConstraint(item: subTitleTextView, attribute: .height, relatedBy: .equal, toItem: self, attribute: .height, multiplier: 0, constant: 20)])
+        
+        addConstraint(NSLayoutConstraint(item: subTitleTextView, attribute: .bottom, relatedBy: .lessThanOrEqual, toItem: seprator, attribute: .top, multiplier: 1, constant: 8))
 
     }
     

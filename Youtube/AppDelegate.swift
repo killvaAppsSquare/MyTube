@@ -22,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         setupNavigationBar()
         application.statusBarStyle = .lightContent
         let statusBView = UIView()
-        statusBView.backgroundColor = UIColor.rgp(194,  31,  31)
+        statusBView.backgroundColor = UIColor.rgb(194,  31,  31)
         window?.addSubview(statusBView)
         window?.addConstraintsWithFormat("H:|[v0]|", views: statusBView)
         window?.addConstraintsWithFormat("V:|[v0(20)]", views: statusBView)
@@ -32,7 +32,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func setupNavigationBar() {
         
-        UINavigationBar.appearance().barTintColor = UIColor.rgp(230,  32,  31)
+        UINavigationBar.appearance().barTintColor = UIColor.rgb(230,  32,  31)
         UINavigationBar.appearance().shadowImage = UIImage()
         UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
     
