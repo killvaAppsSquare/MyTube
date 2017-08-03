@@ -16,7 +16,8 @@ class ViewController: UICollectionViewController , UICollectionViewDelegateFlowL
         view.backgroundColor = .blue
         return view
     }()
-    
+    let blackView = UIView()
+
     var videosData : [VideoModel] {
         guard let x = _videosData else { return [] }
         return x
@@ -55,12 +56,31 @@ class ViewController: UICollectionViewController , UICollectionViewDelegateFlowL
         
     }
     func handleMore(){
+        if let windows = UIApplication.shared.keyWindow{
+            blackView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handelDismiss)))
+            blackView.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+           windows.addSubview(blackView)
+            blackView.frame = windows.frame
+            blackView.alpha = 0
+            
+            UIView.animate(withDuration: 0.5, animations: { 
+                
+                self.blackView.alpha = 1
+            })
+            
+        }
         
-        let blackView = UIView()
-        blackView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
-        navigationController?.view.addSubview(blackView)
-        blackView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height)
+    }
+    
+    func handelDismiss() {
+        
+        UIView.animate(withDuration: 0.5, animations: {
+            
+            self.blackView.alpha = 0
+        }){(true) in
+           self.blackView.removeFromSuperview()
 
+        }
     }
     func setupNavBar() {
         navigationController?.navigationBar.isTranslucent = false
